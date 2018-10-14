@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using log4net.Appender;
 using Microsoft.Extensions.Logging;
 
 namespace Log4net.NetCore.Lib
@@ -6,15 +7,13 @@ namespace Log4net.NetCore.Lib
     public class Log4NetProvider : ILoggerProvider
     {
         #region Fields
-        private readonly string _ConnectionString;
-        private readonly string _LogFilePath;
+        private readonly IAppender[] _Appenders;
         private readonly ConcurrentDictionary<string, Log4NetLogger> _Loggers = new ConcurrentDictionary<string, Log4NetLogger>();
         #endregion
 
-        public Log4NetProvider(string connectionString, string logFilePath)
+        public Log4NetProvider(IAppender[] appenders)
         {
-            _ConnectionString = connectionString;
-            _LogFilePath = logFilePath;
+            _Appenders = appenders;
         }
 
         #region Public Methods
@@ -27,7 +26,7 @@ namespace Log4net.NetCore.Lib
         #region Helper Methods
         private Log4NetLogger CreateLoggerImplementation(string name)
         {
-            return new Log4NetLogger(name, _ConnectionString, _LogFilePath);
+            return new Log4NetLogger(name, _Appenders);
         }
         #endregion
 

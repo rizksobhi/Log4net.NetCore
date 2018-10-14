@@ -3,7 +3,6 @@ using System.Reflection;
 using log4net;
 using log4net.Appender;
 using log4net.Repository;
-using Log4net.NetCore.Lib.Appenders;
 using Microsoft.Extensions.Logging;
 
 namespace Log4net.NetCore.Lib
@@ -16,7 +15,7 @@ namespace Log4net.NetCore.Lib
         private static ILoggerRepository _LoggerRepository;
         #endregion
 
-        public Log4NetLogger(string name, string connectionString, string logFilePath)
+        public Log4NetLogger(string name, IAppender[] appenders)
         {
             _Name = name;
 
@@ -27,7 +26,7 @@ namespace Log4net.NetCore.Lib
             {
                 _LoggerRepository = LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
                 _Log = LogManager.GetLogger(_LoggerRepository.Name, name);
-                log4net.Config.BasicConfigurator.Configure(_LoggerRepository, CreateAppenders(connectionString, logFilePath));
+                log4net.Config.BasicConfigurator.Configure(_LoggerRepository, appenders);
             }
         }
 
@@ -83,20 +82,20 @@ namespace Log4net.NetCore.Lib
                 switch (logLevel)
                 {
                     case LogLevel.Critical:
-                        _Log.Fatal(message);
+                        _Log.Fatal(message, exception);
                         break;
                     case LogLevel.Debug:
                     case LogLevel.Trace:
-                        _Log.Debug(message);
+                        _Log.Debug(message, exception);
                         break;
                     case LogLevel.Error:
-                        _Log.Error(message);
+                        _Log.Error(message, exception);
                         break;
                     case LogLevel.Information:
-                        _Log.Info(message);
+                        _Log.Info(message, exception);
                         break;
                     case LogLevel.Warning:
-                        _Log.Warn(message);
+                        _Log.Warn(message, exception);
                         break;
                     default:
                         _Log.Warn($"Encountered unknown log level {logLevel}, writing out as Info.");
@@ -104,19 +103,6 @@ namespace Log4net.NetCore.Lib
                         break;
                 }
             }
-        }
-        #endregion
-
-        #region Helper Methods
-        private IAppender[] CreateAppenders(string connectionString, string logFilePath)
-        {
-            return new[]
-            {
-                Configuration.CreateConsoleAppender(),
-                Configuration.CreateRollingFileAppender(logFilePath),
-                Configuration.CreateTraceAppender(),
-                Configuration.CreateAdoNetAppender(connectionString)
-            };
         }
         #endregion
     }
